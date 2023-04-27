@@ -1,68 +1,302 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'"> -->
-    <title>Ragnarock</title>
-    <link href="style.css" rel="stylesheet">
-  </head>
-  <body>
-    <div id="main">
-      <div class="hammer" id="lefthammer"></div>
-      <div class="hammer" id="righthammer"></div>
-    </div>
-    <div id="layer">
-      <div id="topleft">
-        <div class="cont">
-          <div id="currentHit">
-            <div id="currentHitLabel">Current Streak : </div>
-            <div id="currentHitValue">64</div>
-          </div>
-          <div id="totalHit">
-            <div id="totalHitValue">512</div>
-            <div id="totalHitLabel">Notes hit !</div>
-          </div>
-          <div id="totalMiss">
-            <div id="totalMissValue">2</div>
-            <div id="totalMissLabel">Missed</div>
-          </div>
-        </div>
-      </div>
-      <div id="topcenter">
-        <div class="cont">
-          <div id="currentSong">
-            <div id="currentSongName">Kammthaar</div>
-            <div id="currentSongBand">Ultra Vomit</div>
-          </div>
-        </div>
-      </div>
-      <div id="topright">
-        <div class="cont">
-          <div id="currentPerfect">
-            <div id="currentPerfectValue">150</div>
-            <div id="currentPerfectLabel">Perfects Streak</div>
-          </div> 
-        </div>
-      </div>
-      <div id="bottomleft">
-        <div class="container">
-          <img src="images/TwitchScreen_Speed_Arrow.png" id="perfectGauge" />
-          <div id="perfectPercent">
-          57%
-          </div>
-        </div>
+	<head>
+		<meta charset="UTF-8">
+		<!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+		<!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'"> -->
+		<title>Ragna-Diag Beta v0.1</title>
+		<style>
+			body {
+				background: rgba(0,0,0,0);
+				margin: 0;
+				font-family: Consolas, "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", Monaco, "Courier New", "monospace";
+				font-size: 15pt;
+			}
+			.topbar {
+				position: absolute;
+				top: 0;
+				width: 640px;
+				background: rgba(0,0,0,0.65);
+				color: white;
+				margin: 0;
+				padding: 10px;
+			}
+			.bottombar {
+				position: absolute;
+				bottom: 0;
+				width: 640px;
+				background: rgba(0,0,0,0.65);
+				color: white;
+				margin: 0;
+				padding: 10px;
+			}
 
-      </div>
-      <div id="bottomright">
-        <div id="perfectGaugeLabel">Combo</div>
-        <div id="perfectGaugeValue"></div>
-        <img src="images/TwitchScreen_Combo_Base.png" id="perfectGauge" />
-        <div id="nbCombos">
-          <div id="nbCombosValue">10</div>
-        </div>
-      </div>
-    </div>
-    <script src="./renderer.js"></script>
-  </body>
+
+		</style>
+	</head>
+	<body>
+		<div class="topbar">
+			<div class="row1-t">
+				<div class="stats">
+					<div class="stats-text" id="beat-hit">
+						Runes hit: 0<br/>(Delta: 0, Time: 0, Streak: 0)
+					</div>
+					<div class="stats-text" id="perfect-hit">
+						Perfect hits: 0 (Percent: 0, Streak: 0)
+					</div>
+					<div class="stats-text" id="beat-miss">
+						Runes missed: 0 (Time: 0)
+					</div>
+					<div class="stats-text" id="combo-trig">
+						Combo triggered: 0 (Partial: 0, Full: 0)
+					</div>
+					<div class="stats-text" id="combo-lost">
+						Last combo lost: After 0 Runes
+					</div>
+					<div class="stats-text" id="song">
+						Current song: Hengettömiltä hengiltä
+					</div>
+					<div class="stats-text" id="artist">
+						Artist: Korpiklaani
+					</div>
+					<div class="stats-text" hidden id="score">
+						Score: 16
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="bottombar">
+			<div class="row1-b">
+				<div class="stats-text" id="drum1">
+					Left Hand - Empty Drum Hit: true, Velocity: 1.0
+				</div>
+				<div class="stats-text" id="drum2">
+					Right Hand - Empty Drum Hit: true, Velocity: 1.0
+				</div>
+			</div>
+			<div class="row2-b">
+				<div class="stats-text" id="status">
+					Status: Waiting
+				</div>
+				<div class="stats-text" id="ver">
+					Ragna-Diag Version 0.1 build 0016
+				</div>
+			</div>
+		</div>
+		<script>
+			var version = "0.1 build 0016";
+			var tb = ["", "", "", "", "", "", "", "", ""];
+			var bb = ["", "", "", "", "", "", ""];
+			var msg;
+			var data;
+			// Transplanting values from official alpha client (with mods)
+			var currentSongName = "";
+			var currentSongBand = "";
+			var currentHits = 0;
+			var currentHitStreak = 0;
+			var currentMissed = 0;
+			var currentPerfect = 0;
+			var currentPerfectStreak = 0;
+			var bestPerfectStreak = 0;
+			var comboMin = 15;
+			var comboMaxMultiplier = 2;
+			var comboMax = comboMin * comboMaxMultiplier;
+			var comboTriggeredIncrement = 10;
+			var currentComboValue = 0;
+			var comboTriggered = 0;
+			var comboLvl1 = 0;
+			var comboLvl2 = 0;
+			var handDrum1 = false;
+			var handDrum2 = false;
+			var missTime = 0;
+			var drum1Vel = 0;
+			var drum2Vel = 0;
+			var status = "Waiting";
+			var noteDelta = 0;
+			var noteTime = 0;
+			var score = 0;
+			var pressFtoPayRespects = 0;
+			
+
+			function stringConstructor() {
+				// Time to construct strings to be put on the screen
+				tb[0] = "Runes hit: " + currentHits + "<br/>" + "(Delta: " + noteDelta + ", Time: " + noteTime + ", Streak: " + currentHitStreak + ")";
+				tb[1] = "Perfect hits: " + currentPerfect + ", Percent: " + updateCurrentPerfectMedian() + ")";
+				tb[2] = "Runes missed: " + currentMissed + " (Time: " + missTime + ")";
+				tb[3] = "Combo triggered: " + comboTriggered + 
+				"(Partial: " + comboLvl1 + ", Full: "+ comboLvl2 +")";
+				tb[4] = "Last combo lost: After " + pressFtoPayRespects + " Runes";
+				tb[5] = "Current Song: " + currentSongName;
+				tb[6] = "Artist: " + currentSongBand;
+				// tb[7] = "Score: " + score;
+				
+				bb[0] = "Left Hand - Empty Drum Hit: " + handDrum1 + ", Velocity: " + drum1Vel;
+				bb[1] = "Right Hand - Empty Drum Hit: " + handDrum2 + ", Velocity: " + drum2Vel;
+				bb[2] = "Status: " + status;
+				bb[3] = "Ragna-Diag Version " + version;
+				
+				var tb0 = document.getElementById("beat-hit");
+				var tb1 = document.getElementById("perfect-hit");
+				var tb2 = document.getElementById("beat-miss");
+				var tb3 = document.getElementById("combo-trig");
+				var tb4 = document.getElementById("combo-lost");
+				var tb5 = document.getElementById("song");
+				var tb6 = document.getElementById("artist");
+				// var tb7 = document.getElementById("score");
+				
+				var bb0 = document.getElementById("drum1");
+				var bb1 = document.getElementById("drum2");
+				var bb2 = document.getElementById("status");
+				var bb3 = document.getElementById("ver");
+				
+				tb0.innerHTML = tb[0];
+				tb1.innerHTML = tb[1];
+				tb2.innerHTML = tb[2];
+				tb3.innerHTML = tb[3];
+				tb4.innerHTML = tb[4];
+				tb5.innerHTML = tb[5];
+				tb6.innerHTML = tb[6];
+				// tb7.innerHTML = tb[7];
+				
+				bb0.innerHTML = bb[0];
+				bb1.innerHTML = bb[1];
+				bb2.innerHTML = bb[2];
+				bb3.innerHTML = bb[3];
+			}
+			
+			var getComboMax = function() {
+			  return getComboMin()*comboMaxMultiplier;
+			}
+
+			var getComboMin = function() {
+			  return comboMin + comboTriggeredIncrement * comboTriggered;
+			}
+			
+			var updateCurrentPerfectMedian = function() {
+			  var percent = Math.round(currentPerfect / (currentHits+currentMissed) * 100);
+			  if (isNaN(percent)) {
+				percent = 0;
+			  }
+				return percent;
+			}
+
+			function init() {
+				currentSongName = "-";
+				currentSongBand = "-";
+				currentHits = 0;
+				currentHitStreak = 0;
+				currentMissed = 0;
+				currentPerfect = 0;
+				currentPerfectStreak = 0;
+				currentComboValue = 0;
+				bestPerfectStreak = 0;
+				comboTriggered = 0;
+				comboMin = 15;
+				comboMax = comboMin * comboMaxMultiplier;
+				handDrum1 = false;
+				handDrum2 = false;
+				missTime = 0.0;
+				drum1Vel = 0.0;
+				drum2Vel = 0.0;
+				status = "Waiting";
+				noteDelta = 0.0;
+				noteTime = 0.0;
+				score = 0;
+				pressFtoPayRespects = 0;
+			}
+
+			window.ragnarockApi.onMessage((_event, value) => {
+				var message = value;
+				msg = value;
+				data = msg.data;
+				console.log('message', message);
+				var data = message.data;
+				if (msg.event == "DrumHit") {
+					if (data.hand == "Left"){
+						if (isNaN(data.intensity) || data.intensity == 0){ 
+							handDrum1 = false;
+							drum1Vel = 0;
+						}
+						else {
+							handDrum1 = true;
+							drum1Vel = data.intensity;
+						}
+					}
+					if (data.hand == "Right"){
+						if (isNaN(data.intensity) || data.intensity == 0){
+							handDrum2 = false;
+							drum2Vel = 0;
+						}
+						else {
+							handDrum2 = true;
+							drum2Vel = data.intensity;
+						}
+					}
+					stringConstructor();
+				}
+				if (message.event == "BeatMiss") {
+					pressFtoPayRespects = currentHitStreak;
+					currentHitStreak = 0;
+					currentMissed++;
+					missTime = data.time;
+					currentPerfectStreak = 0;
+					currentComboValue = 0;
+					stringConstructor();
+				}
+				if (message.event == "ComboTriggered") {
+					comboTriggered++;
+					if (data.level == 1) {
+						comboLvl1++;
+					}
+					if (data.level == 2) {
+						comboLvl2++;
+					}
+					comboMin = getComboMin();
+					comboMax = getComboMax();
+					currentComboValue = 0;
+					stringConstructor();
+				}
+				if (message.event == "StartSong") {
+					init();
+					status = "Started";
+					currentSongName = data.SongName;
+					currentSongBand = data.SongBand;
+					stringConstructor();
+				}
+				
+				if (message.event == "EndSong") {
+					status = "Finished";
+					stringConstructor();
+				}
+
+				if (message.event == "ragnarockInitConnection") {
+					init();
+					stringConstructor();
+				}
+
+				if (message.event == "BeatHit") {
+					currentHitStreak++;
+					currentHits++;
+					noteDelta = data.delta;
+					noteTime = data.time;
+					if (Math.abs(data.delta) * 1000 < 15) {
+						currentPerfect++;
+						currentPerfectStreak++;
+						if (currentPerfectStreak > bestPerfectStreak) {
+							bestPerfectStreak = currentPerfectStreak;
+						}
+						currentComboValue += 1;
+					} else {
+						currentPerfectStreak = 0;
+						currentComboValue += 0.5;
+					}
+					stringConstructor();
+				}
+				if (message.event == "Score") {
+					score = data.ScoresData;
+					stringConstructor();
+				}
+			})
+		</script>
+	</body>
 </html>
