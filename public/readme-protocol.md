@@ -24,7 +24,7 @@ Congratulations to me, I've managed to hit the combo. Probably when you hit the 
 ```
 {"event": "ComboLost", "data": {"lostAt":"0.616667"}}
 ```
-Aw shucks, I lost the combo. As you can see, `lostAt` contains the timing delta from the ideal time to hit the notes.
+Aw shucks, I lost the combo. As you can see, `lostAt` contains the combo value when you lost your combo.
 ```
 {"event": "DrumHit", "data": {"intensity":0.291987,"hand":"Right"}}
 {"event": "DrumHit", "data": {"intensity":0.582399,"hand":"Left"}}
