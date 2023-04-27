@@ -45,7 +45,7 @@
 						Perfect hits: 0 (Percent: 0, Streak: 0)
 					</div>
 					<div class="stats-text" id="beat-miss">
-						Runes missed: 0 (Time: 0)
+						Runes missed: 0 (Time: 0, Last Streak: 0)
 					</div>
 					<div class="stats-text" id="combo-trig">
 						Combo triggered: 0 (Partial: 0, Full: 0)
@@ -116,16 +116,18 @@
 			var noteTime = 0;
 			var lastComboAddition = 0.0;
 			var pressFtoPayRespects = 0;
+			var lastComboLost = 0.0;
 			
 
 			function stringConstructor() {
 				// Time to construct strings to be put on the screen
+				// Get ready to cringe.
 				tb[0] = "Runes hit: " + currentHits + "<br/>" + "(Delta: " + noteDelta + ", Time: " + noteTime + ", Streak: " + currentHitStreak + ")";
 				tb[1] = "Perfect hits: " + currentPerfect + " (Percent: " + updateCurrentPerfectMedian() + "%)";
-				tb[2] = "Runes missed: " + currentMissed + " (Time: " + missTime + ")";
+				tb[2] = "Runes missed: " + currentMissed + " (Time: " + missTime + ", Last Streak: " + pressFtoPayRespects + ")";
 				tb[3] = "Combo triggered: " + comboTriggered + 
 				" (Partial: " + comboLvl1 + ", Full: "+ comboLvl2 +")";
-				tb[4] = "Last combo lost: At " + pressFtoPayRespects + "%";
+				tb[4] = "Last combo lost: At " + lastComboLost + "%";
 				tb[5] = "Current Song: " + currentSongName;
 				tb[6] = "Artist: " + currentSongBand;
 				tb[7] = "Current combo: "+ currentComboValue + " (Last addition: "+ lastComboAddition +")";
@@ -237,10 +239,19 @@
 					stringConstructor();
 				}
 				if (message.event == "BeatMiss") {
+					// Odd that the official client uses this event instead of ComboLost.
+					missTime = data.time;
 					pressFtoPayRespects = currentHitStreak;
+					// Leaving these in just in case it breaks more than it fixes
 					currentHitStreak = 0;
 					currentMissed++;
-					missTime = data.time;
+					currentPerfectStreak = 0;
+					currentComboValue = 0;
+					stringConstructor();
+				}
+				if (message.event == "ComboLost") {
+					lastComboLost = data.lostAt;
+					currentHitStreak = 0;
 					currentPerfectStreak = 0;
 					currentComboValue = 0;
 					stringConstructor();
