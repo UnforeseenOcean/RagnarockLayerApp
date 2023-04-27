@@ -50,17 +50,17 @@
 					<div class="stats-text" id="combo-trig">
 						Combo triggered: 0 (Partial: 0, Full: 0)
 					</div>
+					<div class="stats-text" id="score">
+						Current combo: 0 (Last addition: 0)
+					</div>
 					<div class="stats-text" id="combo-lost">
-						Last combo lost: After 0 Runes
+						Last combo lost: At 0%
 					</div>
 					<div class="stats-text" id="song">
 						Current song: Hengettömiltä hengiltä
 					</div>
 					<div class="stats-text" id="artist">
 						Artist: Korpiklaani
-					</div>
-					<div class="stats-text" hidden id="score">
-						Score: 16
 					</div>
 				</div>
 			</div>
@@ -79,12 +79,12 @@
 					Status: Waiting
 				</div>
 				<div class="stats-text" id="ver">
-					Ragna-Diag Version 0.1 build 0016
+					Ragna-Diag Version 0.1 build 0033
 				</div>
 			</div>
 		</div>
 		<script>
-			var version = "0.1 build 0016";
+			var version = "0.1 build 0033";
 			var tb = ["", "", "", "", "", "", "", "", ""];
 			var bb = ["", "", "", "", "", "", ""];
 			var msg;
@@ -114,21 +114,21 @@
 			var status = "Waiting";
 			var noteDelta = 0;
 			var noteTime = 0;
-			var score = 0;
+			var lastComboAddition = 0.0;
 			var pressFtoPayRespects = 0;
 			
 
 			function stringConstructor() {
 				// Time to construct strings to be put on the screen
 				tb[0] = "Runes hit: " + currentHits + "<br/>" + "(Delta: " + noteDelta + ", Time: " + noteTime + ", Streak: " + currentHitStreak + ")";
-				tb[1] = "Perfect hits: " + currentPerfect + ", Percent: " + updateCurrentPerfectMedian() + ")";
+				tb[1] = "Perfect hits: " + currentPerfect + " (Percent: " + updateCurrentPerfectMedian() + "%)";
 				tb[2] = "Runes missed: " + currentMissed + " (Time: " + missTime + ")";
 				tb[3] = "Combo triggered: " + comboTriggered + 
-				"(Partial: " + comboLvl1 + ", Full: "+ comboLvl2 +")";
-				tb[4] = "Last combo lost: After " + pressFtoPayRespects + " Runes";
+				" (Partial: " + comboLvl1 + ", Full: "+ comboLvl2 +")";
+				tb[4] = "Last combo lost: At " + pressFtoPayRespects + "%";
 				tb[5] = "Current Song: " + currentSongName;
 				tb[6] = "Artist: " + currentSongBand;
-				// tb[7] = "Score: " + score;
+				tb[7] = "Current combo: "+ currentComboValue + " (Last addition: "+ lastComboAddition +")";
 				
 				bb[0] = "Left Hand - Empty Drum Hit: " + handDrum1 + ", Velocity: " + drum1Vel;
 				bb[1] = "Right Hand - Empty Drum Hit: " + handDrum2 + ", Velocity: " + drum2Vel;
@@ -142,7 +142,7 @@
 				var tb4 = document.getElementById("combo-lost");
 				var tb5 = document.getElementById("song");
 				var tb6 = document.getElementById("artist");
-				// var tb7 = document.getElementById("score");
+				var tb7 = document.getElementById("score");
 				
 				var bb0 = document.getElementById("drum1");
 				var bb1 = document.getElementById("drum2");
@@ -156,7 +156,7 @@
 				tb4.innerHTML = tb[4];
 				tb5.innerHTML = tb[5];
 				tb6.innerHTML = tb[6];
-				// tb7.innerHTML = tb[7];
+				tb7.innerHTML = tb[7];
 				
 				bb0.innerHTML = bb[0];
 				bb1.innerHTML = bb[1];
@@ -193,6 +193,8 @@
 				comboTriggered = 0;
 				comboMin = 15;
 				comboMax = comboMin * comboMaxMultiplier;
+				comboLvl1 = 0;
+				comboLvl2 = 0;
 				handDrum1 = false;
 				handDrum2 = false;
 				missTime = 0.0;
@@ -201,7 +203,7 @@
 				status = "Waiting";
 				noteDelta = 0.0;
 				noteTime = 0.0;
-				score = 0;
+				lastComboAddition = 0.0;
 				pressFtoPayRespects = 0;
 			}
 
@@ -286,16 +288,18 @@
 							bestPerfectStreak = currentPerfectStreak;
 						}
 						currentComboValue += 1;
+						lastComboAddition = 1.0;
 					} else {
 						currentPerfectStreak = 0;
 						currentComboValue += 0.5;
+						lastComboAddition = 0.5;
 					}
 					stringConstructor();
 				}
-				if (message.event == "Score") {
-					score = data.ScoresData;
-					stringConstructor();
-				}
+				// if (message.event == "Score") {
+				//	  score = data.ScoresData;
+				//	  stringConstructor();
+				// }
 			})
 		</script>
 	</body>
