@@ -108,12 +108,12 @@
 			var comboLvl2 = 0;
 			var handDrum1 = false;
 			var handDrum2 = false;
-			var missTime = 0;
-			var drum1Vel = 0;
-			var drum2Vel = 0;
+			var missTime = 0.0;
+			var drum1Vel = 0.0;
+			var drum2Vel = 0.0;
 			var status = "Waiting";
-			var noteDelta = 0;
-			var noteTime = 0;
+			var noteDelta = 0.0;
+			var noteTime = 0.0;
 			var lastComboAddition = 0.0;
 			var pressFtoPayRespects = 0;
 			var lastComboLost = 0.0;
@@ -225,16 +225,24 @@
 							handDrum1 = true;
 							drum1Vel = data.intensity;
 						}
+						setTimeout(function(){
+							handDrum1 = false;
+							drum1Vel = 0;
+						},100);
 					}
 					if (data.hand == "Right"){
 						if (isNaN(data.intensity) || data.intensity == 0){
 							handDrum2 = false;
-							drum2Vel = 0;
+							drum2Vel = 0.0;
 						}
 						else {
 							handDrum2 = true;
 							drum2Vel = data.intensity;
 						}
+						setTimeout(function(){
+							handDrum1 = false;
+							drum1Vel = 0.0;
+						},100);
 					}
 					stringConstructor();
 				}
